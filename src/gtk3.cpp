@@ -10,12 +10,22 @@ struct Widgets {
     GtkWidget* bait = nullptr;
     GtkWidget* button = nullptr;
     GtkWidget* result = nullptr;
+    guint timer_id = 0;
     bool revealed = false;
 };
 
 gboolean close_after_joke(gpointer) {
     gtk_main_quit();
     return G_SOURCE_REMOVE;
+}
+
+void on_destroy(GtkWidget*, gpointer user_data) {
+    auto& ui = *static_cast<Widgets*>(user_data);
+    if (ui.timer_id != 0) {
+        g_source_remove(ui.timer_id);
+        ui.timer_id = 0;
+    }
+    gtk_main_quit();
 }
 
 void clicked(GtkButton*, gpointer user_data) {
@@ -25,11 +35,18 @@ void clicked(GtkButton*, gpointer user_data) {
     gtk_widget_hide(ui.bait);
     gtk_widget_hide(ui.button);
     gtk_widget_show(ui.result);
-    g_timeout_add(prank::punchline_ms, close_after_joke, nullptr);
+    ui.timer_id = g_timeout_add(prank::punchline_ms, close_after_joke, nullptr);
 }
 
 void apply_style() {
     constexpr auto css = R"CSS(
+        /* Wayland uses client-side decorations and a theme-provided
+           background; force the same white canvas every other backend has. */
+        window.background, #joke-box {
+            background-color: #ffffff;
+            background-image: none;
+            color: #262b36;
+        }
         #joke-prompt { color: #262b36; font-size: 18px; }
         #joke-result { color: #e63946; font-size: 26px; font-weight: bold; }
         #joke-button {
@@ -61,9 +78,10 @@ int main(int argc, char** argv) {
     gtk_window_set_default_size(GTK_WINDOW(window), prank::window_width, prank::window_height);
     gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
     gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), nullptr);
+    g_signal_connect(window, "destroy", G_CALLBACK(on_destroy), &ui);
 
     GtkWidget* box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_widget_set_name(box, "joke-box");
     gtk_container_set_border_width(GTK_CONTAINER(box), 30);
     gtk_container_add(GTK_CONTAINER(window), box);
 
@@ -80,14 +98,14 @@ int main(int argc, char** argv) {
     gtk_box_pack_start(GTK_BOX(box), ui.button, TRUE, TRUE, 0);
     g_signal_connect(ui.button, "clicked", G_CALLBACK(clicked), &ui);
 
-    ui.result = gtk_label_new(prank::punchline.data());
+    ui.result = gtk_label_new(prank::punchline);
     gtk_widget_set_name(ui.result, "joke-result");
     gtk_widget_set_halign(ui.result, GTK_ALIGN_CENTER);
     gtk_widget_set_valign(ui.result, GTK_ALIGN_CENTER);
+    gtk_widget_set_no_show_all(ui.result, TRUE);
     gtk_box_pack_start(GTK_BOX(box), ui.result, TRUE, TRUE, 0);
 
     gtk_widget_show_all(window);
-    gtk_widget_hide(ui.result);
     gtk_widget_grab_focus(ui.button);
     gtk_main();
     return 0;

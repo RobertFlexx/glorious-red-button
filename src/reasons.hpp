@@ -53,11 +53,12 @@ inline constexpr std::array<std::string_view, 40> reasons{{
 inline constexpr int window_width = 450;
 inline constexpr int window_height = 260;
 inline constexpr int punchline_ms = 1400;
-inline constexpr std::string_view punchline = "you are an idiot";
+// A real null-terminated array: backends hand this straight to C APIs.
+inline constexpr char punchline[] = "you are an idiot";
 
 inline std::string random_reason() {
-    std::random_device device;
-    std::mt19937 engine(device());
+    static std::random_device device;
+    static std::mt19937 engine(device());
     std::uniform_int_distribution<std::size_t> pick(0, reasons.size() - 1);
     return std::string(reasons[pick(engine)]);
 }

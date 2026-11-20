@@ -87,6 +87,9 @@ public:
         }
 
         XMapRaised(display_, window_);
+        // Without an explicit focus, key presses can go to whichever window
+        // the WM happens to focus, so Enter/Space would silently do nothing.
+        XSetInputFocus(display_, window_, RevertToPointerRoot, CurrentTime);
         XFlush(display_);
         return true;
     }
@@ -120,6 +123,7 @@ public:
                     if (static_cast<Atom>(event.xclient.data.l[0]) == close_atom_) running = false;
                     break;
                 case DestroyNotify:
+                    window_ = 0; // already gone; don't destroy it twice in cleanup()
                     running = false;
                     break;
                 }
@@ -156,7 +160,7 @@ private:
         XSetForeground(display_, gc_, background_);
         XFillRectangle(display_, window_, gc_, 0, 0, prank::window_width, prank::window_height);
         if (revealed_) {
-            centered_text(prank::punchline.data(), 130, bold_font_, red_);
+            centered_text(prank::punchline, 130, bold_font_, red_);
         } else {
             centered_text(bait_.c_str(), 77, heading_font_, ink_);
             XSetForeground(display_, gc_, dark_red_);

@@ -32,7 +32,7 @@ public:
             SetHighColor(230, 57, 70);
             SetFont(be_bold_font);
             SetFontSize(27);
-            draw_centered(prank::punchline.data(), 130);
+            draw_centered(prank::punchline, 130);
             return;
         }
 

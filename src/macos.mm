@@ -53,7 +53,8 @@
     self.button.keyEquivalent = @"\r";
     [[self.window contentView] addSubview:self.button];
 
-    self.result = [NSTextField labelWithString:@"you are an idiot"];
+    NSString* punchline = [NSString stringWithUTF8String:prank::punchline];
+    self.result = [NSTextField labelWithString:punchline];
     self.result.frame = NSMakeRect(20, 96, 410, 72);
     self.result.alignment = NSTextAlignmentCenter;
     self.result.font = [NSFont boldSystemFontOfSize:27];

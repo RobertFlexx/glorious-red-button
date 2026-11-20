@@ -22,6 +22,8 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
     case WM_CREATE: {
         const std::string reason = prank::random_reason();
         const std::wstring bait(reason.begin(), reason.end());
+        const std::string punchline(prank::punchline);
+        const std::wstring result(punchline.begin(), punchline.end());
         regular_font = CreateFontW(-21, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
             DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
             CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Segoe UI");
@@ -36,7 +38,7 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
             WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_OWNERDRAW,
             105, 125, 240, 72, window,
             reinterpret_cast<HMENU>(static_cast<INT_PTR>(button_id)), nullptr, nullptr);
-        result_label = CreateWindowExW(0, L"STATIC", L"you are an idiot",
+        result_label = CreateWindowExW(0, L"STATIC", result.c_str(),
             WS_CHILD | SS_CENTER | SS_CENTERIMAGE,
             20, 96, 410, 72, window, nullptr, nullptr, nullptr);
         SendMessageW(bait_label, WM_SETFONT, reinterpret_cast<WPARAM>(regular_font), TRUE);
