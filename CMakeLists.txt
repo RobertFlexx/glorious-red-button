@@ -1,4 +1,20 @@
 cmake_minimum_required(VERSION 3.16)
+
+# The macOS backend uses Objective-C++ ARC, which only Apple clang supports.
+# A different c++ on PATH (e.g. GCC from Alire/Homebrew) can't build it and may
+# even fail the compiler check, so pick Apple clang unless one was requested.
+if(CMAKE_HOST_APPLE AND NOT CMAKE_CROSSCOMPILE)
+    find_program(BRB_APPLE_CLANGXX NAMES clang++ PATHS /usr/bin NO_DEFAULT_PATH)
+    if(BRB_APPLE_CLANGXX)
+        if(NOT CMAKE_CXX_COMPILER MATCHES "clang\\+\\+")
+            set(CMAKE_CXX_COMPILER "${BRB_APPLE_CLANGXX}" CACHE FILEPATH "C++ compiler" FORCE)
+        endif()
+        if(NOT CMAKE_OBJCXX_COMPILER MATCHES "clang\\+\\+")
+            set(CMAKE_OBJCXX_COMPILER "${BRB_APPLE_CLANGXX}" CACHE FILEPATH "Objective-C++ compiler" FORCE)
+        endif()
+    endif()
+endif()
+
 project(big_red_button LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
